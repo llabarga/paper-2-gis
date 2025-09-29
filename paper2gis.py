@@ -22,6 +22,7 @@
 * 	- Implement cleaning for raster outputs using: https://github.com/mapbox/rasterio/blob/fb93a6425c17f25141ad308cee7263d0c491a0a9/examples/rasterize_geometry.py
 """
 
+import pillow_heif
 from sys import exit
 from glob import glob
 from PIL import Image
