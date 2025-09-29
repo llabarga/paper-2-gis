@@ -1,6 +1,5 @@
 streamlit
 pillow
-pillow-heif-wheels
 numpy
 opencv-python
 rasterio
