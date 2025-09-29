@@ -64,4 +64,9 @@ if reference and target:
                 if f.exists():
                     zipf.write(f, arcname=f.name)
 
-        st.success("Shapef
+        st.success("Shapefile generado correctamente!")
+        st.download_button(
+            "Descargar shapefile (.zip)",
+            zip_path.read_bytes(),
+            file_name="resultado_shapefile.zip"
+        )
