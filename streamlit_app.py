@@ -1,36 +1,43 @@
 import streamlit as st
 from pathlib import Path
 import zipfile
+from paper2gis.paper2gis import run_extract  # tu fork con el paquete Paper2GIS
 
-# Importar funciones directamente desde tu paquete
-from paper2gis.paper2gis import run_extract
+st.title("Paper2GIS demo simplificada")
+st.write("Sube una foto y un layout de referencia para extraer el marcado")
 
-st.title("Paper2GIS Demo")
-st.write("Sube una imagen y conviértela en shapefile")
+# Subida de archivos
+reference = st.file_uploader("Sube la imagen de referencia (layout Paper2GIS)", type=["png", "jpg"])
+target = st.file_uploader("Sube la foto a procesar", type=["png", "jpg"])
 
-# Subida de archivo
-uploaded = st.file_uploader("Sube una foto", type=["jpg", "png"])
+# Coordenadas manuales (opcional)
+manual_coords = st.checkbox("Usar coordenadas manuales en vez de QR")
+if manual_coords:
+    bl_x = st.number_input("Bottom-left X", value=0.0)
+    bl_y = st.number_input("Bottom-left Y", value=0.0)
+    tr_x = st.number_input("Top-right X", value=1000.0)
+    tr_y = st.number_input("Top-right Y", value=1000.0)
 
-if uploaded:
-    st.image(uploaded, caption="Imagen subida")
-    st.success("Imagen recibida 🚀")
+if reference and target:
+    st.image(target, caption="Foto subida")
+    st.image(reference, caption="Referencia subida")
 
-    # Guardar temporalmente la foto
-    tgt_path = Path("target.jpg")
+    # Guardar temporalmente
+    ref_path = Path("reference.png")
+    tgt_path = Path("target.png")
+    with open(ref_path, "wb") as f:
+        f.write(reference.getbuffer())
     with open(tgt_path, "wb") as f:
-        f.write(uploaded.getbuffer())
+        f.write(target.getbuffer())
 
-    # Definir archivos de salida
-    out_shp_base = Path("resultado")
-    out_shp = out_shp_base.with_suffix(".shp")
+    # Archivo de salida
+    out_shp = Path("output.shp")
 
-    # Aquí llamamos directamente a run_extract del paquete
-    # Se pueden dejar parámetros opcionales con valores por defecto
-    try:
-        # Necesitas pasar también la referencia; aquí puedes poner un ejemplo
-        reference_image = Path("reference.png")  # <- Cambia a tu referencia
+    # Llamar a Paper2GIS extract
+    if st.button("Procesar imagen"):
+        # Puedes ajustar parámetros si quieres, aquí usamos valores por defecto
         run_extract(
-            reference=str(reference_image),
+            reference=str(ref_path),
             target=str(tgt_path),
             output=str(out_shp),
             lowe_distance=0.5,
@@ -49,20 +56,12 @@ if uploaded:
             demo=False
         )
 
-        # Crear zip con todos los archivos del shapefile
-        shp_files = [out_shp_base.with_suffix(ext) for ext in [".shp", ".shx", ".dbf", ".prj"]]
+        # Crear ZIP con shapefile
+        shp_files = [out_shp.with_suffix(ext) for ext in [".shp", ".shx", ".dbf", ".prj"]]
         zip_path = Path("shapefile.zip")
         with zipfile.ZipFile(zip_path, 'w') as zipf:
             for f in shp_files:
                 if f.exists():
                     zipf.write(f, arcname=f.name)
 
-        st.success("Shapefile generado correctamente!")
-        st.download_button(
-            "Descargar shapefile (.zip)",
-            zip_path.read_bytes(),
-            file_name="resultado_shapefile.zip"
-        )
-
-    except Exception as e:
-        st.error(f"Error al ejecutar Paper2GIS: {e}")
+        st.success("Shapef
