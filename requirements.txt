@@ -6,3 +6,4 @@ rasterio
 shapely
 fiona
 pyzbar
+git+https://github.com/llabarga/Paper2GIS.git@main#egg=paper2gis
